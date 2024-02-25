@@ -1,0 +1,4 @@
+ipykernel
+scanpy
+shiny
+jinja2
