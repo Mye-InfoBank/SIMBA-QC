@@ -29,12 +29,19 @@ def slider_server(input, output, session,
     @output
     @render.ui
     def slider_sample():
-        n_obs = _adata.get().n_obs
+        adata = _adata.get()
+        if adata is None:
+            return
+
+        n_obs = adata.n_obs
         return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs))
     
     @reactive.effect
     def random_sample():
         adata = _adata.get()
+        if adata is None:
+            return
+
         sample_size = input['random_sample_size'].get() if 'random_sample_size' in input else adata.n_obs
 
         adata_sample = adata[np.random.choice(adata.obs.index, sample_size, replace=False)]
@@ -45,6 +52,9 @@ def slider_server(input, output, session,
     def slider_filters():
         pretty_names = _pretty_names.get()
         distributions = _distributions.get()
+
+        if distributions == {}:
+            return ui.div(ui.p("No data available"))
 
         sliders = []
 
@@ -75,6 +85,9 @@ def slider_server(input, output, session,
 
         adata = _adata_sample.get()
         pretty_names = _pretty_names.get()
+
+        if adata is None:
+            return
 
         adata_filtered = adata[adata.obs.apply(filter_row, axis=1)]
         _adata_filtered.set(adata_filtered)

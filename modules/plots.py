@@ -31,6 +31,9 @@ def plots_server(input, output, session,
         adata = _adata.get()
         pretty_names = _pretty_names.get()
 
+        if adata is None:
+            return
+
         x_col = "n_genes_by_counts"
         y_col = "total_counts"
         color_col = "pct_counts_mt"
@@ -60,6 +63,9 @@ def plots_server(input, output, session,
         adata = _adata.get()
         pretty_names = _pretty_names.get()
         distributions = _distributions.get()
+
+        if adata is None:
+            return
 
         n_plots = len(pretty_names)
         n_cols = min(2, n_plots)

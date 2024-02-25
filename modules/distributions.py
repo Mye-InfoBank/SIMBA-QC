@@ -21,6 +21,9 @@ def distributions_server(input, output, session,
     @reactive.effect
     def update_distributions():
         adata = _adata.get()
+        if adata is None:
+            return
+
         distributions = {
             col: get_distribution(adata.obs[col]) for col in _pretty_names.get().keys()
         }
