@@ -3,7 +3,7 @@ This repository contains the source code of the python shiny app which is recomm
 
 ## Offline Usage
 ### Docker
-The app can be run using the docker image `exbio/simba-qc`. The image can be pulled from the docker hub using the following command:
+The app can be run using the docker image `bigdatainbiomedicine/simba-qc`. The image can be pulled from the docker hub using the following command:
 ```bash
 docker run -p <port>:8080 bigdatainbiomedicine/simba-qc
 ```
