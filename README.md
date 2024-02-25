@@ -7,7 +7,7 @@ The app can be run using the docker image `exbio/simba-qc`. The image can be pul
 ```bash
 docker run -p <port>:8080 bigdatainbiomedicine/simba-qc
 ```
-The app will be available at [http://localhost:<port>](http://localhost:<port>).
+Assuming that the port 1234 is used, the app can be accessed at [http://localhost:1234](http://localhost:1234).
 
 ### Local
 The app can also be run locally. The following steps are required to run the app locally:
@@ -24,3 +24,4 @@ pip install -r requirements.txt
 cd src
 uvicorn app:app --host 0.0.0.0 --port <port>
 ```
+Assuming that the port 1234 is used, the app can be accessed at [http://localhost:1234](http://localhost:1234).
