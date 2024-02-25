@@ -1,11 +1,15 @@
-from shiny import App, reactive, ui
+from shiny import App, reactive, ui, render
 from modules import slider_ui, slider_server, distributions_server, plots_server, plots_ui
 import scanpy as sc
 from modules.helpers import calculate_qc_metrics
 import os
+import tempfile
+import anndata as ad
 
-_adata = reactive.value(None)
-_adata_filtered = reactive.value(None)
+_adata: reactive.Value[ad.AnnData] = reactive.value(None)
+_adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
+
+_file_name = reactive.value(None)
 
 _pretty_names = reactive.value({
     'total_counts': 'Total counts',
@@ -18,7 +22,8 @@ _distributions = reactive.value({})
 app_ui = ui.page_sidebar(
     ui.sidebar(ui.div(
         ui.input_file("file_input", label="Upload your file", accept=".h5ad"),
-        slider_ui("sliders")
+        slider_ui("sliders"),
+        ui.download_button("download", "Download filtered data")
     )),
     plots_ui("plots"),
     title="Quality control for SIMBA🦁",
@@ -33,7 +38,6 @@ def server(input, output, session):
 
     @reactive.effect
     def load_adata():
-        print("Loading adata")
         file = input["file_input"].get()
         if file is None:
             return
@@ -41,10 +45,22 @@ def server(input, output, session):
             print("Only one file at a time")
             return
 
-        print(f"Reading file: {file}")
-        adata = sc.read(file[0]["datapath"])
+        used_file = file[0]
+        _file_name.set(used_file["name"])
+        adata = sc.read(used_file["datapath"])
         calculate_qc_metrics(adata)
         _adata.set(adata)
-        print("Loaded adata")
+
+    @render.download(
+        filename = lambda: _file_name.get().replace(".h5ad", "_filtered.h5ad"),
+    )
+    def download():
+        adata_filtered = _adata_filtered.get()
+        if adata_filtered is None:
+            return
+        
+        with tempfile.NamedTemporaryFile(suffix=".h5ad", delete=False) as temp:
+            adata_filtered.write(temp.name)
+            return temp.name
 
 app = App(app_ui, server, static_assets=os.path.join(os.path.dirname(__file__), "media"))
