@@ -28,8 +28,6 @@ distributions = {
     col: get_distribution(adata.obs[col]) for col in pretty_names.keys()
 }
 
-print(get_distribution(adata.obs['pct_counts_mt']))
-
 ui.h3('Quality Control for SIMBA🦁')
 
 with ui.sidebar():
@@ -62,6 +60,8 @@ def subset():
 def filter():
     def filter_row(row):
         for col in pretty_names.keys():
+            if not col in input:
+                continue
             min_val, max_val = input[col].get()
             if not (min_val <= row[col] <= max_val):
                 return False
