@@ -1,10 +1,13 @@
 from shiny import App, reactive, ui, render
-from modules import slider_ui, slider_server, distributions_server, plots_server, plots_ui
 import scanpy as sc
-from modules.helpers import calculate_qc_metrics
 import os
 import tempfile
 import anndata as ad
+
+from sliders import slider_ui, slider_server
+from distributions import distributions_server
+from plots import plots_server, plots_ui
+from helpers import calculate_qc_metrics
 
 _adata: reactive.Value[ad.AnnData] = reactive.value(None)
 _adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)

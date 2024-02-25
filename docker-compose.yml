@@ -1,0 +1,8 @@
+services:
+  simba-qc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    image: bigdatainbiomedicine/simba-qc
