@@ -75,17 +75,17 @@ def plots_server(input, output, session,
 
         for i, (col, pretty_name) in enumerate(pretty_names.items()):
             ax = axes[i // n_cols, i % n_cols] if n_rows > 1 else axes[i]
-            sns.violinplot(adata.obs[col], ax=ax)
+            sns.violinplot(x=adata.obs[col], ax=ax)
             ax.set_xlabel(pretty_name)
             ax.set_ylabel('Density')
 
             current_distribution = distributions[col]
 
             # Add horizontal line for median
-            ax.axhline(current_distribution['median'], color='r', linestyle='--')
+            ax.axvline(current_distribution['median'], color='r', linestyle='--')
 
             for mads in [1, 2, 3]:
-                ax.axhline(min(current_distribution['median'] + mads * current_distribution['std'], current_distribution['max']), color='g', linestyle=':')
-                ax.axhline(max(current_distribution['median'] - mads * current_distribution['std'], current_distribution['min']), color='g', linestyle=':')
+                ax.axvline(min(current_distribution['median'] + mads * current_distribution['std'], current_distribution['max']), color='g', linestyle=':')
+                ax.axvline(max(current_distribution['median'] - mads * current_distribution['std'], current_distribution['min']), color='g', linestyle=':')
 
         return fig
