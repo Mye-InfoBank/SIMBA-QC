@@ -1,4 +1,4 @@
-from shiny import App, reactive, ui, render
+from shiny import App, reactive, ui, render, Session
 import scanpy as sc
 import os
 import tempfile
@@ -9,10 +9,6 @@ from distributions import distributions_server
 from plots import plots_server, plots_ui
 from helpers import calculate_qc_metrics
 
-_adata: reactive.Value[ad.AnnData] = reactive.value(None)
-_adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
-
-_file_name = reactive.value(None)
 
 _pretty_names = reactive.value({
     'total_counts': 'Total counts',
@@ -20,7 +16,6 @@ _pretty_names = reactive.value({
     'pct_counts_mt': 'Percentage of counts from mitochondrial genes',
 })
 
-_distributions = reactive.value({})
 
 app_ui = ui.page_sidebar(
     ui.sidebar(ui.div(
@@ -34,7 +29,12 @@ app_ui = ui.page_sidebar(
 )
 
 
-def server(input, output, session):
+def server(input, output, session: Session):
+    _adata: reactive.Value[ad.AnnData] = reactive.value(None)
+    _adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
+    _file_name = reactive.value(None)
+    _distributions = reactive.value({})
+
     distributions_server("distributions", _adata, _pretty_names, _distributions)
     slider_server("sliders", _adata, _adata_filtered, _pretty_names, _distributions)
     plots_server("plots", _adata_filtered, _pretty_names, _distributions)
@@ -50,7 +50,7 @@ def server(input, output, session):
 
         used_file = file[0]
         _file_name.set(used_file["name"])
-        adata = sc.read(used_file["datapath"])
+        adata = sc.read_h5ad(used_file["datapath"])
         calculate_qc_metrics(adata)
         _adata.set(adata)
 

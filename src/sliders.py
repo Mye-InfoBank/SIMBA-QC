@@ -3,8 +3,6 @@ import anndata as ad
 from typing import Dict
 import numpy as np
 
-_adata_sample = reactive.value(None)
-
 @module.ui
 def slider_ui():
     return ui.div(
@@ -20,6 +18,7 @@ def slider_server(input, output, session,
                    _pretty_names: reactive.Value[Dict[str, str]],
                    _distributions: reactive.Value[Dict[str, Dict[str, float]]]
                    ):
+    _adata_sample = reactive.value(None)
 
     @output
     @render.text
