@@ -3,10 +3,12 @@ import scanpy as sc
 import os
 import tempfile
 import anndata as ad
+import pandas as pd
 
 from sliders import slider_ui, slider_server
 from distributions import distributions_server
 from plots import plots_server, plots_ui
+from metadata import metadata_server, metadata_ui
 from helpers import calculate_qc_metrics
 
 
@@ -19,7 +21,7 @@ _pretty_names = reactive.value({
 
 app_ui = ui.page_navbar(
     ui.nav_panel("1. Upload", ui.input_file("file_input", label="Upload your file", accept=".h5ad")),
-    ui.nav_panel("2. Metadata", "Metadata"),
+    ui.nav_panel("2. Metadata", metadata_ui("metadata")),
     ui.nav_panel("3. Quality control",
         ui.layout_sidebar(
             ui.sidebar(slider_ui("sliders")),
@@ -39,10 +41,12 @@ def server(input, output, session: Session):
     _adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
     _file_name = reactive.value(None)
     _distributions = reactive.value({})
+    _metadata = reactive.value(pd.DataFrame)
 
     distributions_server("distributions", _adata, _pretty_names, _distributions)
     slider_server("sliders", _adata, _adata_filtered, _pretty_names, _distributions)
     plots_server("plots", _adata_filtered, _pretty_names, _distributions)
+    metadata_server("metadata", _adata, _metadata)
 
     @reactive.effect
     def load_adata():
