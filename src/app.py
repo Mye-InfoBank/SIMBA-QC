@@ -17,13 +17,18 @@ _pretty_names = reactive.value({
 })
 
 
-app_ui = ui.page_sidebar(
-    ui.sidebar(ui.div(
-        ui.input_file("file_input", label="Upload your file", accept=".h5ad"),
-        slider_ui("sliders"),
-        ui.download_button("download", "Download filtered data")
-    )),
-    plots_ui("plots"),
+app_ui = ui.page_navbar(
+    ui.nav_panel("1. Upload", ui.input_file("file_input", label="Upload your file", accept=".h5ad")),
+    ui.nav_panel("2. Metadata", "Metadata"),
+    ui.nav_panel("3. Quality control",
+        ui.layout_sidebar(
+            ui.sidebar(slider_ui("sliders")),
+            plots_ui("plots")
+        )
+    ),
+    ui.nav_panel("4. Download",
+                 ui.download_button("download", "Download filtered data")
+                 ),
     title="Quality control for SIMBA🦁",
     window_title="SIMBA🦁: QC"
 )
