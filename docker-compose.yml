@@ -3,9 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    network_mode: "host"
-    environment:
-      - "PORT=1234"
     ports:
-      - 80:80
+      - 8080:8080
     image: bigdatainbiomedicine/simba-qc
