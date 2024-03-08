@@ -31,8 +31,8 @@ app_ui = ui.page_navbar(
     ui.nav_panel("4. Download",
                  ui.download_button("download", "Download filtered data")
                  ),
-    title="Quality control for SIMBA🦁",
-    window_title="SIMBA🦁: QC"
+    title="Preprocessing for SIMBA🦁",
+    window_title="SIMBA🦁: Preprocessing"
 )
 
 
