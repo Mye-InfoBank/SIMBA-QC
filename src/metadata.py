@@ -55,11 +55,16 @@ def metadata_server(input, output, session,
             interface = ui.input_selectize(f"select_{column}", "Columns", _input_columns.get(), multiple=True)
         elif type_string == "Map existing":
             mapcol_accession = f"select_mapcol_{column}"
+            colselect = ui.input_select(mapcol_accession, "Column", _input_columns.get())
+            
             series = adata.obs[input[mapcol_accession].get()] if mapcol_accession in input else None
 
             interface = ui.div(
-                    ui.input_select(mapcol_accession, "Column", _input_columns.get()),
-                    *([ui.input_text(f"mapping_{column}_{col}", col, placeholder="New value") for col in series.unique()] if series is not None else [])
+                    colselect,
+                    ui.accordion(
+                        ui.accordion_panel("Mapping",
+                            *([ui.input_text(f"mapping_{column}_{col}", col, placeholder="New value") for col in series.unique()] if series is not None else [])
+                    ))
                 )
         else:
             interface = ui.input_text(f"input_{column}", "Value", placeholder="Unknown")
