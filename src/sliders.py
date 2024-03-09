@@ -20,11 +20,6 @@ def slider_server(input, output, session,
                    ):
     _adata_sample = reactive.value(None)
     _prev_mads = reactive.value({})
-
-    @output
-    @render.text
-    def out():
-        return f"Click count is {_adata.get()}\n\nPretty names are {_pretty_names.get()}\n\nDistributions are {_distributions.get()}"
     
     @output
     @render.ui
@@ -60,6 +55,7 @@ def slider_server(input, output, session,
 
         for col, pretty_name in pretty_names.items():
             if distributions[col]['min'] == distributions[col]['max']:
+                print(f"Skipping {col}")
                 continue
             else:
                 mads = ui.input_slider(f"{col}_mads", "MADs", 0.25, 10, 2, step=0.25)
