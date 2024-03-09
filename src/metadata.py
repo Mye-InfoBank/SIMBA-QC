@@ -87,7 +87,8 @@ def metadata_server(input, output, session,
                     interface,
                     ui.card_footer(
                         ui.input_action_button("remove_column", "Remove")
-                    )
+                    ),
+                    style="min-width: 300px; max-width: 600px; flex: 1;"
                 )
 
     @render.ui
@@ -97,12 +98,14 @@ def metadata_server(input, output, session,
             ui.input_text("column_name", "", placeholder="Column name"),
             ui.card_footer(
                 ui.input_action_button("add_column", "Add")
-            )
+            ),
+            style="min-width: 300px; max-width: 600px; flex: 1;"
         )
 
-        return ui.layout_columns(
+        return ui.div(
             *[column_card(column) for column in _all_columns.get()],
-            add_card
+            add_card,
+            style="display: flex; flex-wrap: wrap; gap: 10px"
         )
     
     @reactive.effect
