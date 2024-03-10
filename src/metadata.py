@@ -38,11 +38,26 @@ def metadata_server(input, output, session,
             ui.update_text("column_name", value="")
 
     @reactive.effect
+    def remove_column():
+        original_columns = _additional_columns.get() 
+        remaining_columns = []
+
+        for column in original_columns:
+            remove_accession = f"remove_column_{column}"
+            if input[remove_accession].get() > 0:
+                del input[remove_accession]
+            else:
+                remaining_columns.append(column)
+
+        if len(remaining_columns) < len(original_columns):
+            _additional_columns.set(remaining_columns)
+
+    @reactive.effect
     def update_columns():
         _all_columns.set(mandatory_columns + _additional_columns.get())
 
 
-    def column_card(column: str):
+    def column_card(column: str, removable=False):
         adata = _adata.get()
 
         if adata is None:
@@ -87,7 +102,7 @@ def metadata_server(input, output, session,
                     interface,
                     ui.card_footer(
                         ui.input_action_button(f"remove_column_{column}", "Remove")
-                    ),
+                    ) if removable else ui.div(),
                     style="min-width: 300px; max-width: 600px; flex: 1;"
                 )
 
@@ -102,8 +117,10 @@ def metadata_server(input, output, session,
             style="min-width: 300px; max-width: 600px; flex: 1;"
         )
 
+        additional_columns = _additional_columns.get()
+
         return ui.div(
-            *[column_card(column) for column in _all_columns.get()],
+            *[column_card(column, column in additional_columns) for column in _all_columns.get()],
             add_card,
             style="display: flex; flex-wrap: wrap; gap: 10px"
         )
