@@ -24,7 +24,9 @@ app_ui = ui.page_navbar(
     ui.nav_panel("2. Metadata", metadata_ui("metadata")),
     ui.nav_panel("3. Quality control",
         ui.layout_sidebar(
-            ui.sidebar(slider_ui("sliders")),
+            ui.sidebar(
+                slider_ui("sliders")
+                ),
             plots_ui("plots")
         )
     ),
@@ -42,7 +44,7 @@ def server(input, output, session: Session):
     _adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
     _file_name = reactive.value(None)
     _distributions = reactive.value({})
-    _metadata = reactive.value(pd.DataFrame)
+    _metadata = reactive.value(None)
 
     distributions_server("distributions", _adata_meta, _pretty_names, _distributions)
     slider_server("sliders", _adata_meta, _adata_filtered, _pretty_names, _distributions)
@@ -61,6 +63,7 @@ def server(input, output, session: Session):
         used_file = file[0]
         _file_name.set(used_file["name"])
         adata = sc.read_h5ad(used_file["datapath"])
+        calculate_qc_metrics(adata)
         _adata.set(adata)
 
     @reactive.effect
@@ -72,7 +75,6 @@ def server(input, output, session: Session):
         adata_meta = adata.copy()
         adata_meta.obs = metadata.copy()
         calculate_qc_metrics(adata_meta)
-        print("Updating adata_meta")
         _adata_meta.set(adata_meta)
 
     @render.download(

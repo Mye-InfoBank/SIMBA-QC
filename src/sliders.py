@@ -34,10 +34,10 @@ def slider_server(input, output, session,
     @reactive.effect
     def random_sample():
         adata = _adata.get()
+        sample_size = input['random_sample_size'].get()
+        
         if adata is None:
             return
-
-        sample_size = input['random_sample_size'].get() if 'random_sample_size' in input else adata.n_obs
 
         adata_sample = adata[np.random.choice(adata.obs.index, sample_size, replace=False)]
         _adata_sample.set(adata_sample)
@@ -55,7 +55,6 @@ def slider_server(input, output, session,
 
         for col, pretty_name in pretty_names.items():
             if distributions[col]['min'] == distributions[col]['max']:
-                print(f"Skipping {col}")
                 continue
             else:
                 mads = ui.input_slider(f"{col}_mads", "MADs", 0.25, 10, 2, step=0.25)
@@ -66,8 +65,7 @@ def slider_server(input, output, session,
                                 [distributions[col]['min'],
                                 distributions[col]['max']])
                 panel = ui.accordion_panel(pretty_name, mads, absolute)
-                panels.append(panel)
-        
+                panels.append(panel)        
         return ui.accordion(*panels)
     
     @reactive.effect

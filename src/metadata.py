@@ -43,13 +43,13 @@ def metadata_server(input, output, session,
 
 
     def column_card(column: str):
-        select_accession = f"select_type_{column}"
-        type_string = input[select_accession].get() if select_accession in input else "Constant value"
         adata = _adata.get()
 
         if adata is None:
-            print("No adata")
             return None
+
+        select_accession = f"select_type_{column}"
+        type_string = input[select_accession].get() if select_accession in input else "Constant value"
 
         if type_string == "Concat existing columns":
             select_concat_accession = f"select_concat_{column}"
@@ -59,7 +59,7 @@ def metadata_server(input, output, session,
             mapcol_accession = f"select_mapcol_{column}"
             available_columns = _input_columns.get()
             colselect = ui.input_select(mapcol_accession, "Column", available_columns)
-            
+
             series = adata.obs[input[mapcol_accession].get() if mapcol_accession in input else available_columns[0]]
             unique_values = series.unique() if series is not None else []
 
@@ -86,7 +86,7 @@ def metadata_server(input, output, session,
                     ui.input_select(select_accession, "Type", ["Constant value", "Concat existing columns", "Map existing"], selected=type_string),
                     interface,
                     ui.card_footer(
-                        ui.input_action_button("remove_column", "Remove")
+                        ui.input_action_button(f"remove_column_{column}", "Remove")
                     ),
                     style="min-width: 300px; max-width: 600px; flex: 1;"
                 )
@@ -130,7 +130,7 @@ def metadata_server(input, output, session,
             else:
                 constant_accession = f"select_constant_{column}"
                 metadata[column] = input[constant_accession].get() if constant_accession in input else "Unknown"
-        _metadata.set(metadata)
+        _metadata.set(adata.obs)
 
     @render.data_frame
     def metadata_table():
