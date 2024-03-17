@@ -1,5 +1,5 @@
 # SIMBA🦁 QC
-This repository contains the source code of the python shiny app which is recommended to be used for the quality control of the SIMBA🦁 pipeline. The app is available at [https://exbio.wzw.tum.de/simba-qc/](https://exbio.wzw.tum.de/simba-qc/).
+This repository contains the source code of the python shiny app which is recommended to be used for the quality control of the SIMBA🦁 pipeline. The app is available at [https://exbio.wzw.tum.de/cost/qc/](https://exbio.wzw.tum.de/cost/qc/).
 
 ## Offline Usage
 ### Docker
