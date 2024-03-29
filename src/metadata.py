@@ -146,8 +146,13 @@ def metadata_server(input, output, session,
                 metadata[column] = series.map(mapping)
             else:
                 constant_accession = f"select_constant_{column}"
-                metadata[column] = input[constant_accession].get() if constant_accession in input else "Unknown"
-        _metadata.set(adata.obs)
+                if constant_accession in input:
+                    constant_value = input[constant_accession].get()
+                    if constant_value:
+                        metadata[column] = constant_value
+                        continue
+                metadata[column] = "Unknown"
+        _metadata.set(metadata)
 
     @render.data_frame
     def metadata_table():

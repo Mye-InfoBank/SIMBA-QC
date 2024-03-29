@@ -5,4 +5,4 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8080:8080
-    image: bigdatainbiomedicine/simba-qc
+    image: bigdatainbiomedicine/simba-qc:0.1
