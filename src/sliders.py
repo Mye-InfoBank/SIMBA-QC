@@ -2,21 +2,26 @@ from shiny import App, module, reactive, render, ui
 import anndata as ad
 from typing import Dict
 import numpy as np
+import pandas as pd
+from helpers import calculate_qc_metrics
 
 @module.ui
 def slider_ui():
     return ui.div(
         ui.output_ui("slider_sample"),
-        ui.output_ui("slider_filters")
+        ui.output_ui("slider_filters"),
+        ui.input_task_button("calculate_button", "Calculate Metadata new")
     )
 
 
 @module.server
 def slider_server(input, output, session,
                    _adata: reactive.Value[ad.AnnData],
+                   _metadata: reactive.Value[pd.DataFrame],
                    _adata_filtered: reactive.Value[ad.AnnData],
                    _pretty_names: reactive.Value[Dict[str, str]],
-                   _distributions: reactive.Value[Dict[str, Dict[str, float]]]
+                   _distributions: reactive.Value[Dict[str, Dict[str, float]]],
+                   _calculate_metrics_bool: reactive.value[bool],
                    ):
     _adata_sample = reactive.value(None)
     _prev_mads = reactive.value({})
@@ -30,6 +35,29 @@ def slider_server(input, output, session,
 
         n_obs = adata.n_obs
         return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs), post=" cells")
+    
+    @reactive.effect
+    def calculate_qc_metrics_and_update():
+        adata = _adata.get()
+        adata_meta = adata.copy()
+        metadata = _metadata.get()
+        adata_meta.obs = metadata.copy()
+        calculate_qc_metrics(adata_meta)
+        #_adata.set(adata)
+        #_adata_meta.set(adata_meta)
+        
+        
+        
+    @reactive.observe(_calculate_metrics_bool)
+    def showing_button():
+        if _calculate_metrics_bool.get():
+            ui.show("calculate_button")
+        else:
+            ui.hide("calculate_button")
+    
+    @reactive.input("calculate_button")
+    def calculate_button_click():
+        calculate_qc_metrics_and_update()
     
     @reactive.effect
     def random_sample():
