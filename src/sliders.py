@@ -17,7 +17,7 @@ def slider_ui():
 @module.server
 def slider_server(input, output, session,
                    _adata: reactive.Value[ad.AnnData],
-                   _metadata: reactive.Value[pd.DataFrame],
+                   _metadata: reactive.value[pd.DataFrame],
                    _adata_filtered: reactive.Value[ad.AnnData],
                    _pretty_names: reactive.Value[Dict[str, str]],
                    _distributions: reactive.Value[Dict[str, Dict[str, float]]],
@@ -43,22 +43,22 @@ def slider_server(input, output, session,
         metadata = _metadata.get()
         adata_meta.obs = metadata.copy()
         calculate_qc_metrics(adata_meta)
+        _calculate_metrics_bool.set(False)
         #_adata.set(adata)
         #_adata_meta.set(adata_meta)
         
-        
-        
-    @reactive.observe(_calculate_metrics_bool)
+    @reactive.effect
+    @reactive.event(input.calculate_button, ignore_none=False)
+    def handle_click():
+        calculate_qc_metrics_and_update()
+
+    @reactive.effect
     def showing_button():
         if _calculate_metrics_bool.get():
             ui.show("calculate_button")
         else:
             ui.hide("calculate_button")
-    
-    @reactive.input("calculate_button")
-    def calculate_button_click():
-        calculate_qc_metrics_and_update()
-    
+
     @reactive.effect
     def random_sample():
         adata = _adata.get()
