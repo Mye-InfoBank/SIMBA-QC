@@ -5,12 +5,14 @@ import numpy as np
 import pandas as pd
 from helpers import calculate_qc_metrics
 
+#_calculate_metrics_bool = reactive.value(False)
+    
 @module.ui
 def slider_ui():
     return ui.div(
         ui.output_ui("slider_sample"),
         ui.output_ui("slider_filters"),
-        ui.input_task_button("calculate_button", "Calculate Metadata new")
+        button() 
     )
 
 
@@ -18,6 +20,7 @@ def slider_ui():
 def slider_server(input, output, session,
                    _adata: reactive.Value[ad.AnnData],
                    _metadata: reactive.value[pd.DataFrame],
+                   _adata_meta: reactive.Value[ad.AnnData],
                    _adata_filtered: reactive.Value[ad.AnnData],
                    _pretty_names: reactive.Value[Dict[str, str]],
                    _distributions: reactive.Value[Dict[str, Dict[str, float]]],
@@ -36,28 +39,26 @@ def slider_server(input, output, session,
         n_obs = adata.n_obs
         return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs), post=" cells")
     
+    @render.ui
+    def button():
+        calculate_metrics_bool = _calculate_metrics_bool.get()
+        return ui.input_task_button("calculate_button", "Calculate Metadata new")
+    
     @reactive.effect
     def calculate_qc_metrics_and_update():
         adata = _adata.get()
-        adata_meta = adata.copy()
         metadata = _metadata.get()
-        adata_meta.obs = metadata.copy()
-        calculate_qc_metrics(adata_meta)
-        _calculate_metrics_bool.set(False)
-        #_adata.set(adata)
-        #_adata_meta.set(adata_meta)
+        if adata is not None and metadata is not None:
+             adata_meta = adata.copy()
+             adata_meta.obs = metadata.copy()
+             calculate_qc_metrics(adata_meta)
+             _adata_meta.set(adata_meta)
+             _calculate_metrics_bool.set(False)
         
     @reactive.effect
     @reactive.event(input.calculate_button, ignore_none=False)
     def handle_click():
-        calculate_qc_metrics_and_update()
-
-    @reactive.effect
-    def showing_button():
-        if _calculate_metrics_bool.get():
-            ui.show("calculate_button")
-        else:
-            ui.hide("calculate_button")
+        calculate_qc_metrics_and_update
 
     @reactive.effect
     def random_sample():

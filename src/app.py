@@ -48,7 +48,7 @@ def server(input, output, session: Session):
     _calculate_metrics_bool = reactive.value(False)
 
     distributions_server("distributions", _adata_meta, _pretty_names, _distributions)
-    slider_server("sliders", _adata_meta, _metadata, _adata_filtered, _pretty_names, _distributions, _calculate_metrics_bool)
+    slider_server("sliders", _adata, _metadata, _adata_meta, _adata_filtered, _pretty_names, _distributions, _calculate_metrics_bool)
     plots_server("plots", _adata_filtered, _pretty_names, _distributions)
     metadata_server("metadata", _adata, _metadata)
 
@@ -64,8 +64,9 @@ def server(input, output, session: Session):
         used_file = file[0]
         _file_name.set(used_file["name"])
         adata = sc.read_h5ad(used_file["datapath"])
-        #calculate_qc_metrics(adata)
-        _calculate_metrics_bool.set(True)
+        _adata.set(adata)
+        #_calculate_metrics_bool.set(True)
+        calculate_qc_metrics(adata)
         _adata.set(adata)
 
     @reactive.effect
@@ -74,11 +75,7 @@ def server(input, output, session: Session):
         metadata = _metadata.get()
         if adata is None or metadata is None:
             return
-        adata_meta = adata.copy()
-        adata_meta.obs = metadata.copy()
-        #calculate_qc_metrics(adata_meta)
         _calculate_metrics_bool.set(True)
-        _adata_meta.set(adata_meta)
 
     @render.download(
         filename = lambda: _file_name.get().replace(".h5ad", "_filtered.h5ad"),
