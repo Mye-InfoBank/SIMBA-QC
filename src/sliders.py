@@ -12,7 +12,7 @@ def slider_ui():
     return ui.div(
         ui.output_ui("slider_sample"),
         ui.output_ui("slider_filters"),
-        button() 
+        ui.output_ui("button") 
     )
 
 
@@ -32,37 +32,49 @@ def slider_server(input, output, session,
     @output
     @render.ui
     def slider_sample():
-        adata = _adata.get()
+        adata = _adata_meta.get()
         if adata is None:
             return
 
         n_obs = adata.n_obs
         return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs), post=" cells")
     
+    @output
     @render.ui
     def button():
         calculate_metrics_bool = _calculate_metrics_bool.get()
-        return ui.input_task_button("calculate_button", "Calculate Metadata new")
+        if calculate_metrics_bool is None:
+            print('None')
+            return
+        
+        if calculate_metrics_bool:
+            print('true')
+            return ui.input_task_button("calculate_button", "Calculate Metadata new")
+        else:
+            print('false')
+            return None
     
+    #@reactive.effect
+    #def calculate_qc_metrics_and_update():
+        
+        
     @reactive.effect
-    def calculate_qc_metrics_and_update():
+    @reactive.event(input.calculate_button, ignore_none=False)
+    def handle_click():
         adata = _adata.get()
         metadata = _metadata.get()
         if adata is not None and metadata is not None:
              adata_meta = adata.copy()
              adata_meta.obs = metadata.copy()
+             calculate_qc_metrics(adata)
              calculate_qc_metrics(adata_meta)
+             _adata.set(adata)
              _adata_meta.set(adata_meta)
              _calculate_metrics_bool.set(False)
-        
-    @reactive.effect
-    @reactive.event(input.calculate_button, ignore_none=False)
-    def handle_click():
-        calculate_qc_metrics_and_update
 
     @reactive.effect
     def random_sample():
-        adata = _adata.get()
+        adata = _adata_meta.get()
         sample_size = input['random_sample_size'].get()
         
         if adata is None:
