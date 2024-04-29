@@ -9,9 +9,9 @@ from helpers import calculate_qc_metrics
 @module.ui
 def slider_ui():
     return ui.div(
+        ui.output_ui("button"),
         ui.output_ui("slider_sample"),
-        ui.output_ui("slider_filters"),
-        ui.output_ui("button") 
+        ui.output_ui("slider_filters")   
     )
 
 
@@ -46,7 +46,7 @@ def slider_server(input, output, session,
             return
         
         if calculate_metrics_bool:
-            return ui.input_task_button("calculate_button", "Calculate Metadata new")
+            return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255);")
         else:
             return None
         
