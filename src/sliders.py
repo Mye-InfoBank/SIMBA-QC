@@ -43,19 +43,16 @@ def slider_server(input, output, session,
     def button():
         calculate_metrics_bool = _calculate_metrics_bool.get()
         if calculate_metrics_bool is None:
-            print('None')
             return
         
         if calculate_metrics_bool:
-            print('true')
             return ui.input_task_button("calculate_button", "Calculate Metadata new")
         else:
-            print('false')
             return None
         
         
     @reactive.effect
-    @reactive.event(input.calculate_button, ignore_none=False)
+    @reactive.event(input.calculate_button, ignore_none=True)
     def handle_click():
         adata = _adata.get()
         metadata = _metadata.get()
