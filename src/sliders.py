@@ -4,8 +4,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 from helpers import calculate_qc_metrics
-
-#_calculate_metrics_bool = reactive.value(False)
+   
     
 @module.ui
 def slider_ui():
@@ -53,9 +52,6 @@ def slider_server(input, output, session,
         else:
             print('false')
             return None
-    
-    #@reactive.effect
-    #def calculate_qc_metrics_and_update():
         
         
     @reactive.effect

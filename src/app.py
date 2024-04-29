@@ -45,7 +45,7 @@ def server(input, output, session: Session):
     _file_name = reactive.value(None)
     _distributions = reactive.value({})
     _metadata = reactive.value(None)
-    _calculate_metrics_bool = reactive.value(None)
+    _calculate_metrics_bool = reactive.value(False)
 
     distributions_server("distributions", _adata_meta, _pretty_names, _distributions)
     slider_server("sliders", _adata, _metadata, _adata_meta, _adata_filtered, _pretty_names, _distributions, _calculate_metrics_bool)
