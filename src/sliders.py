@@ -46,7 +46,7 @@ def slider_server(input, output, session,
             return
         
         if calculate_metrics_bool:
-            return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255);")
+            return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);")
         else:
             return None
         
