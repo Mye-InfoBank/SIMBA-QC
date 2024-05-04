@@ -49,11 +49,11 @@ def slider_server(input, output, session,
             return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);")
         else:
             return None
-        
-        
-    @reactive.effect
-    @reactive.event(input.calculate_button, ignore_none=True)
-    def handle_click():
+       
+    @ui.bind_task_button(button_id="calculate_button")    
+    @reactive.extended_task
+    async def recalculate_qc():
+        print('recalculate')
         adata = _adata.get()
         metadata = _metadata.get()
         if adata is not None and metadata is not None:
@@ -64,6 +64,12 @@ def slider_server(input, output, session,
              _adata.set(adata)
              _adata_meta.set(adata_meta)
              _calculate_metrics_bool.set(False)
+             
+    @reactive.effect
+    @reactive.event(input.calculate_button, ignore_none=True)
+    def handle_click():
+        print('handle_click')
+        recalculate_qc()
 
     @reactive.effect
     def random_sample():
