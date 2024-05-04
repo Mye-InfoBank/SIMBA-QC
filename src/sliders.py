@@ -4,6 +4,9 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 from helpers import calculate_qc_metrics
+import asyncio
+import concurrent.futures
+import time
    
     
 @module.ui
@@ -13,7 +16,8 @@ def slider_ui():
         ui.output_ui("slider_sample"),
         ui.output_ui("slider_filters")   
     )
-
+    
+pool = concurrent.futures.ThreadPoolExecutor()
 
 @module.server
 def slider_server(input, output, session,
@@ -53,9 +57,15 @@ def slider_server(input, output, session,
     @ui.bind_task_button(button_id="calculate_button")    
     @reactive.extended_task
     async def recalculate_qc():
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(pool, recalc_logic)
+    
+    def recalc_logic():
+        time.sleep(1)
         print('recalculate')
         adata = _adata.get()
         metadata = _metadata.get()
+        print('got')
         if adata is not None and metadata is not None:
              adata_meta = adata.copy()
              adata_meta.obs = metadata.copy()
@@ -64,6 +74,10 @@ def slider_server(input, output, session,
              _adata.set(adata)
              _adata_meta.set(adata_meta)
              _calculate_metrics_bool.set(False)
+             print('end')
+             print(adata.obs.head(1))
+        else: print('none')
+             
              
     @reactive.effect
     @reactive.event(input.calculate_button, ignore_none=True)
