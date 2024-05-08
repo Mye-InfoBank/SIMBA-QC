@@ -53,17 +53,13 @@ def slider_server(input, output, session,
             return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);")
         else:
             return None
-       
-    @ui.bind_task_button(button_id="calculate_button")    
-    @reactive.extended_task
-    async def recalculate_qc():
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(pool, recalc_logic)
     
-    def recalc_logic():
+    @reactive.effect
+    def recalc_logic(adata, metadata, calculate_metrics_bool, adata_meta):
         time.sleep(1)
         print('recalculate')
         adata = _adata.get()
+        print('got')
         metadata = _metadata.get()
         print('got')
         if adata is not None and metadata is not None:
@@ -71,19 +67,37 @@ def slider_server(input, output, session,
              adata_meta.obs = metadata.copy()
              calculate_qc_metrics(adata)
              calculate_qc_metrics(adata_meta)
-             _adata.set(adata)
-             _adata_meta.set(adata_meta)
-             _calculate_metrics_bool.set(False)
+             adata.set(adata)
+             adata_meta.set(adata_meta)
+             
+             calculate_metrics_bool.set(False)
              print('end')
              print(adata.obs.head(1))
-        else: print('none')
-             
+             return adata, adata_meta, metadata, calculate_metrics_bool 
+        else: 
+            print('none')
+           
+    
+    @ui.bind_task_button(button_id="calculate_button")    
+    @reactive.extended_task
+    async def recalculate_qc():
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(pool, recalc_logic)  
              
     @reactive.effect
     @reactive.event(input.calculate_button, ignore_none=True)
     def handle_click():
         print('handle_click')
-        recalculate_qc()
+        adata = _adata.get()
+        metadata = _metadata.get()
+        calculate_metrics_bool = _calculate_metrics_bool.get()
+        adata_meta = _adata_meta.get()
+        result = recalc_logic(adata, metadata, calculate_metrics_bool, adata_meta)
+        return result
+    
+    @reactive.effect
+    def return_of_adata_meta():
+        return recalculate_qc.result()
 
     @reactive.effect
     def random_sample():
