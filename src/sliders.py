@@ -7,6 +7,7 @@ from helpers import calculate_qc_metrics
 import asyncio
 import concurrent.futures
 import time
+import functools
    
     
 @module.ui
@@ -80,9 +81,9 @@ def slider_server(input, output, session,
     
     @ui.bind_task_button(button_id="calculate_button")    
     @reactive.extended_task
-    async def recalculate_qc():
+    async def recalculate_qc(adata, metadata, calculate_metrics_bool, adata_meta):
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(pool, recalc_logic)  
+        return await loop.run_in_executor(pool, recalc_logic, adata, metadata, calculate_metrics_bool, adata_meta)  
              
     @reactive.effect
     @reactive.event(input.calculate_button, ignore_none=True)
@@ -92,8 +93,8 @@ def slider_server(input, output, session,
         metadata = _metadata.get()
         calculate_metrics_bool = _calculate_metrics_bool.get()
         adata_meta = _adata_meta.get()
-        result = recalc_logic(adata, metadata, calculate_metrics_bool, adata_meta)
-        return result
+        #recalculate_qc(adata, metadata, calculate_metrics_bool, adata_meta)
+        recalculate_qc(_adata, _metadata, _calculate_metrics_bool, _adata_meta)
     
     @reactive.effect
     def return_of_adata_meta():
