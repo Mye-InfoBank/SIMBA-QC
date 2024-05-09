@@ -18,13 +18,10 @@ def slider_ui():
         ui.output_ui("slider_filters")   
     )
     
-pool = concurrent.futures.ThreadPoolExecutor()
-
 @module.server
 def slider_server(input, output, session,
-                   _adata: reactive.Value[ad.AnnData],
-                   _metadata: reactive.value[pd.DataFrame],
                    _adata_meta: reactive.Value[ad.AnnData],
+                   _adata_qc: reactive.Value[ad.AnnData],
                    _adata_filtered: reactive.Value[ad.AnnData],
                    _pretty_names: reactive.Value[Dict[str, str]],
                    _distributions: reactive.Value[Dict[str, Dict[str, float]]],
@@ -36,7 +33,7 @@ def slider_server(input, output, session,
     @output
     @render.ui
     def slider_sample():
-        adata = _adata_meta.get()
+        adata = _adata_qc.get()
         if adata is None:
             return
 
@@ -55,54 +52,30 @@ def slider_server(input, output, session,
         else:
             return None
     
-    @reactive.effect
-    def recalc_logic(adata, metadata, calculate_metrics_bool, adata_meta):
-        time.sleep(1)
-        print('recalculate')
-        adata = _adata.get()
-        print('got')
-        metadata = _metadata.get()
-        print('got')
-        if adata is not None and metadata is not None:
-             adata_meta = adata.copy()
-             adata_meta.obs = metadata.copy()
-             calculate_qc_metrics(adata)
-             calculate_qc_metrics(adata_meta)
-             adata.set(adata)
-             adata_meta.set(adata_meta)
-             
-             calculate_metrics_bool.set(False)
-             print('end')
-             print(adata.obs.head(1))
-             return adata, adata_meta, metadata, calculate_metrics_bool 
-        else: 
-            print('none')
-           
-    
     @ui.bind_task_button(button_id="calculate_button")    
     @reactive.extended_task
-    async def recalculate_qc(adata, metadata, calculate_metrics_bool, adata_meta):
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(pool, recalc_logic, adata, metadata, calculate_metrics_bool, adata_meta)  
-             
+    async def recalc_logic(adata_meta):
+        adata_meta_copy = adata_meta.copy()
+        calculate_qc_metrics(adata_meta_copy)
+        return adata_meta_copy
+
     @reactive.effect
     @reactive.event(input.calculate_button, ignore_none=True)
     def handle_click():
-        print('handle_click')
-        adata = _adata.get()
-        metadata = _metadata.get()
-        calculate_metrics_bool = _calculate_metrics_bool.get()
         adata_meta = _adata_meta.get()
-        #recalculate_qc(adata, metadata, calculate_metrics_bool, adata_meta)
-        recalculate_qc(_adata, _metadata, _calculate_metrics_bool, _adata_meta)
+        if adata_meta is None:
+            return
+        recalc_logic(adata_meta)
     
     @reactive.effect
     def return_of_adata_meta():
-        return recalculate_qc.result()
+        result = recalc_logic.result()
+        _adata_qc.set(result)
+        _calculate_metrics_bool.set(False)
 
     @reactive.effect
     def random_sample():
-        adata = _adata_meta.get()
+        adata = _adata_qc.get()
         sample_size = input['random_sample_size'].get()
         
         if adata is None:
