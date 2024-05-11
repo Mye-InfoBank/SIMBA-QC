@@ -41,13 +41,15 @@ app_ui = ui.page_navbar(
 def server(input, output, session: Session):
     _adata: reactive.Value[ad.AnnData] = reactive.value(None)
     _adata_meta: reactive.Value[ad.AnnData] = reactive.value(None)
+    _adata_qc: reactive.Value[ad.AnnData] = reactive.value(None)
     _adata_filtered: reactive.Value[ad.AnnData] = reactive.value(None)
     _file_name = reactive.value(None)
     _distributions = reactive.value({})
     _metadata = reactive.value(None)
+    _calculate_metrics_bool = reactive.value(False)
 
-    distributions_server("distributions", _adata_meta, _pretty_names, _distributions)
-    slider_server("sliders", _adata_meta, _adata_filtered, _pretty_names, _distributions)
+    distributions_server("distributions", _adata_qc, _pretty_names, _distributions)
+    slider_server("sliders", _adata_meta, _adata_qc, _adata_filtered, _pretty_names, _distributions, _calculate_metrics_bool)
     plots_server("plots", _adata_filtered, _pretty_names, _distributions)
     metadata_server("metadata", _adata, _metadata)
 
@@ -63,8 +65,8 @@ def server(input, output, session: Session):
         used_file = file[0]
         _file_name.set(used_file["name"])
         adata = sc.read_h5ad(used_file["datapath"])
-        calculate_qc_metrics(adata)
         _adata.set(adata)
+        _calculate_metrics_bool.set(True)
 
     @reactive.effect
     def update_adata_meta():
@@ -73,9 +75,9 @@ def server(input, output, session: Session):
         if adata is None or metadata is None:
             return
         adata_meta = adata.copy()
-        adata_meta.obs = metadata.copy()
-        calculate_qc_metrics(adata_meta)
+        adata_meta.obs = metadata
         _adata_meta.set(adata_meta)
+        _calculate_metrics_bool.set(True)
 
     @render.download(
         filename = lambda: _file_name.get().replace(".h5ad", "_filtered.h5ad"),

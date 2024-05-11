@@ -2,21 +2,30 @@ from shiny import App, module, reactive, render, ui
 import anndata as ad
 from typing import Dict
 import numpy as np
-
+import pandas as pd
+from helpers import calculate_qc_metrics
+import asyncio
+import concurrent.futures
+import time
+import functools
+   
+    
 @module.ui
 def slider_ui():
     return ui.div(
+        ui.output_ui("button"),
         ui.output_ui("slider_sample"),
-        ui.output_ui("slider_filters")
+        ui.output_ui("slider_filters")   
     )
-
-
+    
 @module.server
 def slider_server(input, output, session,
-                   _adata: reactive.Value[ad.AnnData],
+                   _adata_meta: reactive.Value[ad.AnnData],
+                   _adata_qc: reactive.Value[ad.AnnData],
                    _adata_filtered: reactive.Value[ad.AnnData],
                    _pretty_names: reactive.Value[Dict[str, str]],
-                   _distributions: reactive.Value[Dict[str, Dict[str, float]]]
+                   _distributions: reactive.Value[Dict[str, Dict[str, float]]],
+                   _calculate_metrics_bool: reactive.value[bool],
                    ):
     _adata_sample = reactive.value(None)
     _prev_mads = reactive.value({})
@@ -24,16 +33,49 @@ def slider_server(input, output, session,
     @output
     @render.ui
     def slider_sample():
-        adata = _adata.get()
+        adata = _adata_qc.get()
         if adata is None:
             return
 
         n_obs = adata.n_obs
         return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs), post=" cells")
     
+    @output
+    @render.ui
+    def button():
+        calculate_metrics_bool = _calculate_metrics_bool.get()
+        if calculate_metrics_bool is None:
+            return
+        
+        if calculate_metrics_bool:
+            return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);")
+        else:
+            return None
+    
+    @ui.bind_task_button(button_id="calculate_button")    
+    @reactive.extended_task
+    async def recalc_logic(adata_meta):
+        adata_meta_copy = adata_meta.copy()
+        calculate_qc_metrics(adata_meta_copy)
+        return adata_meta_copy
+
+    @reactive.effect
+    @reactive.event(input.calculate_button, ignore_none=True)
+    def handle_click():
+        adata_meta = _adata_meta.get()
+        if adata_meta is None:
+            return
+        recalc_logic(adata_meta)
+    
+    @reactive.effect
+    def return_of_adata_meta():
+        result = recalc_logic.result()
+        _adata_qc.set(result)
+        _calculate_metrics_bool.set(False)
+
     @reactive.effect
     def random_sample():
-        adata = _adata.get()
+        adata = _adata_qc.get()
         sample_size = input['random_sample_size'].get()
         
         if adata is None:
