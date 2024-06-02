@@ -76,7 +76,16 @@ def slider_server(input, output, session,
     @reactive.effect
     def random_sample():
         adata = _adata_qc.get()
-        sample_size = input['random_sample_size'].get()
+        if adata is None:
+            return
+        
+        obs_number = adata.n_obs
+        sample_size = input['random_sample_size']
+        
+        if sample_size > obs_number:
+            sample_size = obs_number
+            ui.update_slider('random_sample_size', value=sample_size, max=obs_number)
+            
         
         if adata is None:
             return
