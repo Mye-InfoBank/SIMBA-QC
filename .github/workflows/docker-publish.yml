@@ -29,7 +29,7 @@ jobs:
         name: Build and push
         uses: docker/bake-action@v4
         with:
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
