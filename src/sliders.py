@@ -78,19 +78,13 @@ def slider_server(input, output, session,
         adata = _adata_qc.get()
         if adata is None:
             return
-        
-        obs_number = adata.n_obs
-        sample_size = input['random_sample_size']()
-        
-        if int(sample_size) > int(obs_number):
-            sample_size = obs_number
-            ui.update_slider('random_sample_size', value=sample_size, max=obs_number)
-            
-        
+       
+        sample_size = input['random_sample_size'].get()
+       
         if adata is None:
             return
 
-        adata_sample = adata[np.random.choice(adata.obs.index, sample_size, replace=False)]
+        adata_sample = adata[np.random.choice(adata.obs.index, min(sample_size, len(adata.obs)), replace=False)]
         _adata_sample.set(adata_sample)
 
     @output
