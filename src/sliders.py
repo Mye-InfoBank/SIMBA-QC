@@ -80,9 +80,9 @@ def slider_server(input, output, session,
             return
         
         obs_number = adata.n_obs
-        sample_size = input['random_sample_size']
+        sample_size = input['random_sample_size']()
         
-        if sample_size > obs_number:
+        if int(sample_size) > int(obs_number):
             sample_size = obs_number
             ui.update_slider('random_sample_size', value=sample_size, max=obs_number)
             
