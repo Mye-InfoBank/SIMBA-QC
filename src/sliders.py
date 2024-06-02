@@ -81,9 +81,6 @@ def slider_server(input, output, session,
        
         sample_size = input['random_sample_size'].get()
        
-        if adata is None:
-            return
-
         adata_sample = adata[np.random.choice(adata.obs.index, min(sample_size, len(adata.obs)), replace=False)]
         _adata_sample.set(adata_sample)
 
