@@ -11,21 +11,26 @@ def slider_ui():
         ui.output_ui("button"),
         ui.output_ui("slider_sample"),
         ui.output_ui("slider_filters"),
-        ui.input_task_button("filter", "Filter")
+        ui.input_task_button("filter", "Filter"),
     )
 
+
 @module.server
-def slider_server(input, output, session,
-                   _adata_meta: reactive.Value[ad.AnnData],
-                   _adata_qc: reactive.Value[ad.AnnData],
-                   _adata_filtered: reactive.Value[ad.AnnData],
-                   _pretty_names: reactive.Value[Dict[str, str]],
-                   _distributions: reactive.Value[Dict[str, Dict[str, float]]],
-                   _calculate_metrics_bool: reactive.value[bool],
-                   ):
+def slider_server(
+    input,
+    output,
+    session,
+    _adata_meta: reactive.Value[ad.AnnData],
+    _adata_qc: reactive.Value[ad.AnnData],
+    _adata_filtered: reactive.Value[ad.AnnData],
+    _pretty_names: reactive.Value[Dict[str, str]],
+    _distributions: reactive.Value[Dict[str, Dict[str, float]]],
+    _calculate_metrics_bool: reactive.value[bool],
+):
     _adata_sample = reactive.value(None)
     _prev_mads = reactive.value({})
-    
+    _prev_filters = reactive.value({})
+
     @output
     @render.ui
     def slider_sample():
@@ -34,21 +39,32 @@ def slider_server(input, output, session,
             return
 
         n_obs = adata.n_obs
-        return ui.input_slider('random_sample_size', 'Random sample size', min(100, n_obs), n_obs, min(10000, n_obs), post=" cells")
-    
+        return ui.input_slider(
+            "random_sample_size",
+            "Random sample size",
+            min(100, n_obs),
+            n_obs,
+            min(10000, n_obs),
+            post=" cells",
+        )
+
     @output
     @render.ui
     def button():
         calculate_metrics_bool = _calculate_metrics_bool.get()
         if calculate_metrics_bool is None:
             return
-        
+
         if calculate_metrics_bool:
-            return ui.input_task_button("calculate_button", "Recalculate QC metrics", style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);")
+            return ui.input_task_button(
+                "calculate_button",
+                "Recalculate QC metrics",
+                style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);",
+            )
         else:
             return None
-    
-    @ui.bind_task_button(button_id="calculate_button")    
+
+    @ui.bind_task_button(button_id="calculate_button")
     @reactive.extended_task
     async def recalc_logic(adata_meta):
         adata_meta_copy = adata_meta.copy()
@@ -62,7 +78,7 @@ def slider_server(input, output, session,
         if adata_meta is None:
             return
         recalc_logic(adata_meta)
-    
+
     @reactive.effect
     def return_of_adata_meta():
         result = recalc_logic.result()
@@ -74,10 +90,14 @@ def slider_server(input, output, session,
         adata = _adata_qc.get()
         if adata is None:
             return
-       
-        sample_size = input['random_sample_size'].get()
-       
-        adata_sample = adata[np.random.choice(adata.obs.index, min(sample_size, len(adata.obs)), replace=False)]
+
+        sample_size = input["random_sample_size"].get()
+
+        adata_sample = adata[
+            np.random.choice(
+                adata.obs.index, min(sample_size, len(adata.obs)), replace=False
+            )
+        ]
         _adata_sample.set(adata_sample)
 
     @output
@@ -92,20 +112,21 @@ def slider_server(input, output, session,
         panels = []
 
         for col, pretty_name in pretty_names.items():
-            if distributions[col]['min'] == distributions[col]['max']:
+            if distributions[col]["min"] == distributions[col]["max"]:
                 continue
             else:
                 mads = ui.input_slider(f"{col}_mads", "MADs", 0.25, 10, 2, step=0.25)
-                absolute = ui.input_slider(f"{col}_absolute",
-                                "Absolute value",
-                                distributions[col]['min'],
-                                distributions[col]['max'],
-                                [distributions[col]['min'],
-                                distributions[col]['max']])
+                absolute = ui.input_slider(
+                    f"{col}_absolute",
+                    "Absolute value",
+                    distributions[col]["min"],
+                    distributions[col]["max"],
+                    [distributions[col]["min"], distributions[col]["max"]],
+                )
                 panel = ui.accordion_panel(pretty_name, mads, absolute)
-                panels.append(panel)        
+                panels.append(panel)
         return ui.accordion(*panels)
-    
+
     @reactive.effect
     def update_absolute_by_mads():
         pretty_names = _pretty_names.get()
@@ -116,7 +137,7 @@ def slider_server(input, output, session,
             return
 
         for col, _ in pretty_names.items():
-            if distributions[col]['min'] == distributions[col]['max']:
+            if distributions[col]["min"] == distributions[col]["max"]:
                 continue
             else:
                 mads_name = f"{col}_mads"
@@ -133,15 +154,19 @@ def slider_server(input, output, session,
                 if mads is None or absolute is None:
                     continue
 
-                min_val = distributions[col]['median'] - mads * distributions[col]['std']
-                max_val = distributions[col]['median'] + mads * distributions[col]['std']
+                min_val = (
+                    distributions[col]["median"] - mads * distributions[col]["std"]
+                )
+                max_val = (
+                    distributions[col]["median"] + mads * distributions[col]["std"]
+                )
 
                 ui.update_slider(absolute_name, value=[min_val, max_val])
 
                 prev_mads[mads_name] = mads
 
     @reactive.effect
-    @reactive.event(input['filter'])
+    @reactive.event(input["filter"])
     def on_filter():
         adata = _adata_sample.get()
 
@@ -157,7 +182,7 @@ def slider_server(input, output, session,
                 continue
             min_val, max_val = input[input_name].get()
             filters[col] = (min_val, max_val)
-        
+
         filter(adata, filters)
 
     @ui.bind_task_button(button_id="filter")
