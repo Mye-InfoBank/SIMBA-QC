@@ -3,7 +3,6 @@ import anndata as ad
 from typing import Dict
 import numpy as np
 from helpers import calculate_qc_metrics
-import json
 
 
 @module.ui
@@ -189,7 +188,11 @@ def slider_server(
         if filters == prev_filters:
             return None
         else:
-            return ui.input_task_button("filter", "Filter")
+            return ui.input_task_button(
+                "filter",
+                "Filter",
+                style="background-color: rgb(153, 0, 255); border-color: rgb(153, 0, 255);",
+            )
 
     @reactive.effect
     @reactive.event(input["filter"])
