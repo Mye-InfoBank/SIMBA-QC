@@ -10,9 +10,10 @@ def slider_ui():
     return ui.div(
         ui.output_ui("button"),
         ui.output_ui("slider_sample"),
-        ui.output_ui("slider_filters")   
+        ui.output_ui("slider_filters"),
+        ui.input_task_button("filter", "Filter")
     )
-    
+
 @module.server
 def slider_server(input, output, session,
                    _adata_meta: reactive.Value[ad.AnnData],
@@ -138,24 +139,42 @@ def slider_server(input, output, session,
                 ui.update_slider(absolute_name, value=[min_val, max_val])
 
                 prev_mads[mads_name] = mads
-    
-    @reactive.effect
-    def filter():
-        def filter_row(row):
-            for col in pretty_names.keys():
-                input_name = f"{col}_absolute"
-                if not input_name in input:
-                    continue
-                min_val, max_val = input[input_name].get()
-                if not (min_val <= row[col] <= max_val):
-                    return False
-            return True
 
+    @reactive.effect
+    @reactive.event(input['filter'])
+    def on_filter():
         adata = _adata_sample.get()
-        pretty_names = _pretty_names.get()
 
         if adata is None:
             return
 
+        filters = {}
+        pretty_names = _pretty_names.get()
+
+        for col in pretty_names.keys():
+            input_name = f"{col}_absolute"
+            if not input_name in input:
+                continue
+            min_val, max_val = input[input_name].get()
+            filters[col] = (min_val, max_val)
+        
+        filter(adata, filters)
+
+    @ui.bind_task_button(button_id="filter")
+    @reactive.extended_task
+    async def filter(adata: ad.AnnData, filters: dict):
+        def filter_row(row):
+            for col, thresholds in filters.items():
+                min_val, max_val = thresholds
+                if not (min_val <= row[col] <= max_val):
+                    return False
+            return True
+
         adata_filtered = adata[adata.obs.apply(filter_row, axis=1)]
-        _adata_filtered.set(adata_filtered)
+        return adata_filtered
+
+    @reactive.effect
+    def update_filtered():
+        adata_filtered = filter.result()
+        if adata_filtered is not None:
+            _adata_filtered.set(adata_filtered)
