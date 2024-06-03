@@ -3,6 +3,7 @@ import anndata as ad
 from typing import Dict
 import numpy as np
 from helpers import calculate_qc_metrics
+import json
 
 
 @module.ui
@@ -11,7 +12,7 @@ def slider_ui():
         ui.output_ui("button"),
         ui.output_ui("slider_sample"),
         ui.output_ui("slider_filters"),
-        ui.input_task_button("filter", "Filter"),
+        ui.output_ui("filter_button"),
     )
 
 
@@ -29,6 +30,7 @@ def slider_server(
 ):
     _adata_sample = reactive.value(None)
     _prev_mads = reactive.value({})
+    _cur_filters = reactive.value({})
     _prev_filters = reactive.value({})
 
     @output
@@ -166,13 +168,7 @@ def slider_server(
                 prev_mads[mads_name] = mads
 
     @reactive.effect
-    @reactive.event(input["filter"])
-    def on_filter():
-        adata = _adata_sample.get()
-
-        if adata is None:
-            return
-
+    def update_filters():
         filters = {}
         pretty_names = _pretty_names.get()
 
@@ -182,6 +178,27 @@ def slider_server(
                 continue
             min_val, max_val = input[input_name].get()
             filters[col] = (min_val, max_val)
+
+        _cur_filters.set(filters)
+
+    @render.ui
+    def filter_button():
+        filters = _cur_filters.get()
+        prev_filters = _prev_filters.get()
+
+        if filters == prev_filters:
+            return None
+        else:
+            return ui.input_task_button("filter", "Filter")
+
+    @reactive.effect
+    @reactive.event(input["filter"])
+    def on_filter():
+        adata = _adata_sample.get()
+        filters = _cur_filters.get()
+
+        if adata is None:
+            return
 
         filter(adata, filters)
 
@@ -196,10 +213,11 @@ def slider_server(
             return True
 
         adata_filtered = adata[adata.obs.apply(filter_row, axis=1)]
-        return adata_filtered
+        return adata_filtered, filters
 
     @reactive.effect
     def update_filtered():
-        adata_filtered = filter.result()
+        adata_filtered, filters = filter.result()
         if adata_filtered is not None:
             _adata_filtered.set(adata_filtered)
+            _prev_filters.set(filters)
