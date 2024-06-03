@@ -1,15 +1,10 @@
-from shiny import App, module, reactive, render, ui
+from shiny import module, reactive, render, ui
 import anndata as ad
 from typing import Dict
 import numpy as np
-import pandas as pd
 from helpers import calculate_qc_metrics
-import asyncio
-import concurrent.futures
-import time
-import functools
-   
-    
+
+
 @module.ui
 def slider_ui():
     return ui.div(
