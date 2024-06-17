@@ -5,27 +5,29 @@ import matplotlib.pyplot as plt
 from typing import Dict
 import numpy as np
 
+
 @module.ui
 def plots_ui():
     return ui.div(
-        ui.card(
-            ui.card_header("Scatter plot"),
-            ui.output_plot("plot_scatter")
-        ),
+        ui.card(ui.card_header("Number of cells"), ui.output_text("n_cells")),
+        ui.card(ui.card_header("Scatter plot"), ui.output_plot("plot_scatter")),
         ui.card(
             ui.card_header("Histograms"),
             ui.output_ui("coloring_histograms"),
-            ui.output_plot("plot_histograms")
-        )
+            ui.output_plot("plot_histograms"),
+        ),
     )
 
 
 @module.server
-def plots_server(input, output, session,
-                   _adata: reactive.Value[ad.AnnData],
-                   _pretty_names: reactive.Value[Dict[str, str]],
-                   _distributions: reactive.Value[Dict[str, Dict[str, float]]]
-                   ):
+def plots_server(
+    input,
+    output,
+    session,
+    _adata: reactive.Value[ad.AnnData],
+    _pretty_names: reactive.Value[Dict[str, str]],
+    _distributions: reactive.Value[Dict[str, Dict[str, float]]],
+):
     @output
     @render.plot
     def plot_scatter():
@@ -42,12 +44,14 @@ def plots_server(input, output, session,
 
         fig, ax = plt.subplots()
 
-        ax.scatter(adata.obs[x_col],
-                   adata.obs[y_col],
-                   c=adata.obs[color_col],
-                   s=dot_size,
-                   cmap='viridis')
-        
+        ax.scatter(
+            adata.obs[x_col],
+            adata.obs[y_col],
+            c=adata.obs[color_col],
+            s=dot_size,
+            cmap="viridis",
+        )
+
         ax.set_xlabel(pretty_names[x_col])
         ax.set_ylabel(pretty_names[y_col])
 
@@ -57,7 +61,7 @@ def plots_server(input, output, session,
             cbar.set_label(pretty_names[color_col])
 
         return fig
-    
+
     @output
     @render.ui
     def coloring_histograms():
@@ -65,8 +69,13 @@ def plots_server(input, output, session,
 
         if adata is None:
             return
-        
-        categorical_obs = [None] + [column for column in adata.obs.select_dtypes(include=["object", "category"]).columns]
+
+        categorical_obs = [None] + [
+            column
+            for column in adata.obs.select_dtypes(
+                include=["object", "category"]
+            ).columns
+        ]
 
         return ui.input_select("histo_coloring", "Coloring", categorical_obs)
 
@@ -90,11 +99,7 @@ def plots_server(input, output, session,
         for i, (col, pretty_name) in enumerate(pretty_names.items()):
             ax = axes[i // n_cols, i % n_cols] if n_rows > 1 else axes[i]
 
-            kwargs = {
-                "x": col,
-                "ax": ax,
-                "bins": 50
-            }
+            kwargs = {"x": col, "ax": ax, "bins": 50}
             if coloring:
                 kwargs["hue"] = coloring
 
@@ -104,10 +109,34 @@ def plots_server(input, output, session,
             current_distribution = distributions[col]
 
             # Add horizontal line for median
-            ax.axvline(current_distribution['median'], color='r', linestyle='--')
+            ax.axvline(current_distribution["median"], color="r", linestyle="--")
 
             for mads in [1, 2, 3]:
-                ax.axvline(min(current_distribution['median'] + mads * current_distribution['std'], current_distribution['max']), color='g', linestyle=':')
-                ax.axvline(max(current_distribution['median'] - mads * current_distribution['std'], current_distribution['min']), color='g', linestyle=':')
+                ax.axvline(
+                    min(
+                        current_distribution["median"]
+                        + mads * current_distribution["std"],
+                        current_distribution["max"],
+                    ),
+                    color="g",
+                    linestyle=":",
+                )
+                ax.axvline(
+                    max(
+                        current_distribution["median"]
+                        - mads * current_distribution["std"],
+                        current_distribution["min"],
+                    ),
+                    color="g",
+                    linestyle=":",
+                )
 
         return fig
+
+    @render.text
+    def n_cells():
+        adata = _adata.get()
+
+        if adata is not None:
+            n_cells = adata.n_obs
+            return f"{n_cells} cells pass the current filtering thresholds"
