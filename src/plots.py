@@ -45,9 +45,9 @@ def plots_server(
         fig, ax = plt.subplots()
 
         ax.scatter(
-            adata.obs[x_col],
-            adata.obs[y_col],
-            c=adata.obs[color_col],
+            adata.obs[x_col].astype(float),
+            adata.obs[y_col].astype(float),
+            c=adata.obs[color_col].astype(float),
             s=dot_size,
             cmap="viridis",
         )
@@ -133,10 +133,12 @@ def plots_server(
 
         return fig
 
+    @output
     @render.text
     def n_cells():
         adata = _adata.get()
 
         if adata is not None:
-            n_cells = adata.n_obs
+            n_cells = int(adata.n_obs)
+            print(type(n_cells))
             return f"{n_cells} cells pass the current filtering thresholds"
