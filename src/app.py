@@ -4,6 +4,9 @@ import os
 import tempfile
 import anndata as ad
 import pandas as pd
+import json
+import logging
+import numpy as np
 
 from sliders import slider_ui, slider_server
 from distributions import distributions_server
@@ -12,12 +15,35 @@ from metadata import metadata_server, metadata_ui
 from helpers import calculate_qc_metrics
 
 
+def convert_float32_to_float(data):
+    if isinstance(data, dict):
+        #print('dict')
+        return {k: convert_float32_to_float(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        #print('list')
+        return [convert_float32_to_float(v) for v in data]
+    elif isinstance(data, np.float32) or isinstance(data, np.float64):
+        #print(f"Converting {data} to float")
+        return float(data)
+    elif isinstance(data, np.ndarray):
+        #print('ndarray')
+        return data.tolist()
+    return data
+
+# Monkey-patch json.dumps
+original_json_dumps = json.dumps
+
+def custom_json_dumps(data, *args, **kwargs):
+    non_float_32_data = convert_float32_to_float(data)
+    return original_json_dumps(non_float_32_data, *args, **kwargs)
+
+json.dumps = custom_json_dumps
+
 _pretty_names = reactive.value({
     'total_counts': 'Total counts',
     'n_genes_by_counts': 'Number of genes with counts',
     'pct_counts_mt': 'Percentage of counts from mitochondrial genes',
 })
-
 
 app_ui = ui.page_navbar(
     ui.nav_panel("1. Upload", ui.input_file("file_input", label="Upload your file", accept=".h5ad")),
