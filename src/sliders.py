@@ -155,12 +155,12 @@ def slider_server(
                 if mads is None or absolute is None:
                     continue
 
-                min_val = (
+                min_val = float((
                     distributions[col]["median"] - mads * distributions[col]["std"]
-                )
-                max_val = (
+                ))
+                max_val = float((
                     distributions[col]["median"] + mads * distributions[col]["std"]
-                )
+                ))
 
                 ui.update_slider(absolute_name, value=[min_val, max_val])
 
