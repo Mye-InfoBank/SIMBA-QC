@@ -11,43 +11,6 @@ from plots import plots_server, plots_ui
 from metadata import metadata_server, metadata_ui
 from helpers import calculate_qc_metrics
 
-'''
-def convert_float32_to_float(data):
-    if isinstance(data, dict):
-        #print('dict')
-        for k, v in data.items():
-            if isinstance(v, np.float32):
-                print(f"Converting 32 {v} to float in dict")
-        return {k: convert_float32_to_float(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        for v in data:
-            if isinstance(v, np.float32):
-                print(f"Converting 32 {v} to float in list")
-    
-        return [convert_float32_to_float(v) for v in data]
-    elif isinstance(data, np.float32):
-        if isinstance(data, np.float32):
-            print(f"Converting 32 {data} to float")
-        #print(f"Converting {data} to float")
-        return float(data)
-    elif isinstance(data, np.ndarray):
-        for v in data:
-            if isinstance(v, np.float32):
-                print(f"Converting 32 {v} to float in ndarray")
-        #print('ndarray')
-        return data.tolist()
-    return data
-
-# Monkey-patch json.dumps
-original_json_dumps = json.dumps
-
-def custom_json_dumps(data, *args, **kwargs):
-    non_float_32_data = convert_float32_to_float(data)
-    return original_json_dumps(non_float_32_data, *args, **kwargs)
-
-json.dumps = custom_json_dumps
-
-'''
 
 _pretty_names = reactive.value({
     'total_counts': 'Total counts',
