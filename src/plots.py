@@ -140,5 +140,4 @@ def plots_server(
 
         if adata is not None:
             n_cells = int(adata.n_obs)
-            print(type(n_cells))
             return f"{n_cells} cells pass the current filtering thresholds"

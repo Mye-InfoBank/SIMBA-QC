@@ -3,9 +3,7 @@ import scanpy as sc
 import os
 import tempfile
 import anndata as ad
-import pandas as pd
 import json
-import logging
 import numpy as np
 
 from sliders import slider_ui, slider_server
