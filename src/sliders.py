@@ -39,7 +39,7 @@ def slider_server(
         if adata is None:
             return
 
-        n_obs = adata.n_obs
+        n_obs = int(adata.n_obs)
         return ui.input_slider(
             "random_sample_size",
             "Random sample size",
@@ -120,9 +120,9 @@ def slider_server(
                 absolute = ui.input_slider(
                     f"{col}_absolute",
                     "Absolute value",
-                    distributions[col]["min"],
-                    distributions[col]["max"],
-                    [distributions[col]["min"], distributions[col]["max"]],
+                    float(distributions[col]["min"]),
+                    float(distributions[col]["max"]),
+                    [float(distributions[col]["min"]), float(distributions[col]["max"])],
                 )
                 panel = ui.accordion_panel(pretty_name, mads, absolute)
                 panels.append(panel)
@@ -155,12 +155,12 @@ def slider_server(
                 if mads is None or absolute is None:
                     continue
 
-                min_val = (
+                min_val = float((
                     distributions[col]["median"] - mads * distributions[col]["std"]
-                )
-                max_val = (
+                ))
+                max_val = float((
                     distributions[col]["median"] + mads * distributions[col]["std"]
-                )
+                ))
 
                 ui.update_slider(absolute_name, value=[min_val, max_val])
 

@@ -3,7 +3,7 @@ import scanpy as sc
 import os
 import tempfile
 import anndata as ad
-import pandas as pd
+import json
 
 from sliders import slider_ui, slider_server
 from distributions import distributions_server
@@ -17,7 +17,6 @@ _pretty_names = reactive.value({
     'n_genes_by_counts': 'Number of genes with counts',
     'pct_counts_mt': 'Percentage of counts from mitochondrial genes',
 })
-
 
 app_ui = ui.page_navbar(
     ui.nav_panel("1. Upload", ui.input_file("file_input", label="Upload your file", accept=".h5ad")),

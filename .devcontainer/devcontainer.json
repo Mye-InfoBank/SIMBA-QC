@@ -22,7 +22,7 @@
 				"ms-python.black-formatter"
 			]
 		}
-	},
+	}
 
 	// Configure tool-specific properties.
 	// "customizations": {},
